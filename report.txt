@@ -28,8 +28,22 @@ DIFFICULTIES: No difficulties in developing the optimization; other than it is u
 OPTIMIZATION RESULTS:
 Input size:  1000000
 Num of bins: 4096
-Kernel time: 0.081141
+Kernel time: 0.081141 seconds
 
 Improvement: 0.04423x speedup (slowdown)
 
 REASON: The reason behind the slowdown is that the system doesn't parse the input in parallel. It does reduce the atomic operations though, but this isn't enough to overcome the fact that the runtime becomes O(4096n).
+
+4.
+DESCRIPTION: Break the main input down into subarrays based around the blocks. Then sort the information in the subarrays. Next, reduce the arrays around the common items to figure out the subcounts based on the numbers present in the subarrays. (Basically sorting, then scanning, then reducing).
+
+DIFFICULTIES: The problem becomes utilizing the parallel properties to run the code. It eventually breaks down into several threads doing a majority of the work and most doing nothing. This causes dramatic slowdown and doesn't optimize the algorithms any.
+
+OPTIMIZATION RESULTS:
+Input size:  1000000
+Num of bins: 4096
+Kernel time: 0.079334 seconds
+
+Improvement: 0.045239x speedup (slowdown)
+
+REASON: The code eventually stops running in parallel which causes the much slower SM to process more and more data individually with smaller numbers of threads. This means poor utilization of the threads and the processors. Plus the overhead of the sorting and scanning became inhibitive.

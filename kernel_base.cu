@@ -18,20 +18,19 @@
 __global__ void histogram_kernel(unsigned int* input, unsigned int* bins,
     unsigned int num_elements, unsigned int num_bins) {
 		
-	extern __shared__ unsigned int bins_s[];
-	
 	int globalId = blockIdx.x * BLOCK_SIZE + threadIdx.x;
-	int count = 0;
+	unsigned int temp;
 	
-	if (globalId < num_bins) {
-		for (int i = 0; i < num_elements; i++) {
-			if (input[i] == globalId) {
-				count++;
-			}
+	// determine how many times are assigned grid is supposed to run
+	int iterations = num_elements / (BLOCK_SIZE * NUM_BLOCKS) + 1;
+	
+	for (int i = 0; i < iterations; i++) {
+		if (globalId + (OFFSET * i) < num_elements) {
+			temp = input[globalId + (OFFSET * i)];
+			temp = atomicAdd(&bins[temp], 1u);
 		}
 	}
 	
-	bins[globalId] = count;	
 }
 
 __global__ void convert_kernel(unsigned int *bins32, uint8_t *bins8,
